@@ -54,18 +54,17 @@ func (svr *Server) Start() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	tcpAddr, err := net.ResolveTCPAddr(svr.config.ProtocolType, svr.config.BindAddress)
 	if err != nil {
-		fmt.Println("ResolveTCPAddr Error : " + err.Error())
+		fmt.Println("TCP地址解析失败 : " + err.Error())
 	}
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	if err != nil {
-		fmt.Println("ListenTCP Error : " + err.Error())
+		fmt.Println("监听端口失败: %s" + err.Error())
 	}
 	svr.waitGroup.Add(1)
 	defer func() {
 		listener.Close()
 		svr.waitGroup.Done()
 	}()
-	var failureCnt uint32
 	for {
 		select {
 		case <-svr.exitChan:
@@ -77,10 +76,6 @@ func (svr *Server) Start() {
 		listener.SetDeadline(time.Now().Add(svr.config.AcceptTimeout))
 		conn, err := listener.AcceptTCP()
 		if err != nil {
-			if failureCnt++; failureCnt > svr.config.AcceptErrorLimit {
-				fmt.Println("listener.Accept() 错误超过限制, 服务退出。", err.Error())
-				return
-			}
 			continue
 		}
 		svr.waitGroup.Add(1)
@@ -89,7 +84,6 @@ func (svr *Server) Start() {
 			NewConn(conn, svr).Handle()
 			svr.waitGroup.Done()
 		}()
-		failureCnt = 0
 	}
 }
 
