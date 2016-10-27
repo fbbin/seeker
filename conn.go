@@ -2,7 +2,6 @@ package seeker
 
 import (
 	"errors"
-	"fmt"
 	"net"
 	"sync"
 	"sync/atomic"
@@ -140,7 +139,6 @@ func (conn *Conn) read() {
 		}
 		packetData, err := conn.server.protocol.ReadPacket(conn.conn)
 		if err != nil {
-			fmt.Println(err.Error())
 			return
 		}
 		conn.packetReceiveChan <- packetData
