@@ -116,9 +116,9 @@ func (conn *Conn) Handle() {
 	if !conn.server.callback.OnConnect(conn) {
 		return
 	}
-	asyncDo(conn.message, conn.server.waitGroup)
-	asyncDo(conn.read, conn.server.waitGroup)
-	asyncDo(conn.write, conn.server.waitGroup)
+	doCallBackAction(conn.message, conn.server.waitGroup)
+	doCallBackAction(conn.read, conn.server.waitGroup)
+	doCallBackAction(conn.write, conn.server.waitGroup)
 }
 
 // read 处理从连接中读取一个协议包到接收通道中
@@ -196,8 +196,8 @@ func (conn *Conn) message() {
 	}
 }
 
-// asyncDo 异步统一处理
-func asyncDo(callback func(), wg *sync.WaitGroup) {
+// doCallBackAction 异步统一处理
+func doCallBackAction(callback func(), wg *sync.WaitGroup) {
 	wg.Add(1)
 	go func() {
 		callback()
