@@ -1,8 +1,11 @@
 package seeker
 
 import (
+	"bufio"
 	"errors"
+	"fmt"
 	"net"
+	"os"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -124,7 +127,13 @@ func (conn *Conn) Handle() {
 // read 处理从连接中读取一个协议包到接收通道中
 func (conn *Conn) read() {
 	defer func() {
-		recover()
+		//recover()
+		//conn.Close()
+
+		if r := recover(); r != nil {
+			WriteLog(fmt.Sprintf("defer writeLoop, err:%v, connid:%v", r, conn.GetExtraData()))
+		}
+		WriteLog(fmt.Sprintf("defer writeLoop, connid:%v", conn.GetExtraData()))
 		conn.Close()
 	}()
 	for {
@@ -148,7 +157,12 @@ func (conn *Conn) read() {
 // write 将要发送的数据写入发送消息通道
 func (conn *Conn) write() {
 	defer func() {
-		recover()
+		//recover()
+		//conn.Close()
+		if r := recover(); r != nil {
+			WriteLog(fmt.Sprintf("defer writeLoop, err:%v, connid:%v", r, conn.GetExtraData()))
+		}
+		WriteLog(fmt.Sprintf("defer writeLoop, connid:%v", conn.GetExtraData()))
 		conn.Close()
 	}()
 	for {
@@ -175,6 +189,12 @@ func (conn *Conn) write() {
 func (conn *Conn) message() {
 	defer func() {
 		//		recover()
+		//conn.Close()
+
+		if r := recover(); r != nil {
+			WriteLog(fmt.Sprintf("defer writeLoop, err:%v, connid:%v", r, conn.GetExtraData()))
+		}
+		WriteLog(fmt.Sprintf("defer writeLoop, connid:%v", conn.GetExtraData()))
 		conn.Close()
 	}()
 	for {
@@ -203,4 +223,21 @@ func doCallBackAction(callback func(), wg *sync.WaitGroup) {
 		callback()
 		wg.Done()
 	}()
+}
+
+func WriteLog(line string) {
+	f, err := os.OpenFile("./log4/err.txt", os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+	if err != nil {
+		panic(err)
+		return
+	}
+	defer f.Close()
+	w := bufio.NewWriter(f) //创建新的 Writer 对象
+	t := time.Now().Format("2006-01-02 15:04:05")
+	_, err = w.WriteString(t + ":" + line + "\n")
+	if err != nil {
+		panic(err)
+	}
+
+	w.Flush()
 }
