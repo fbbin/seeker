@@ -226,7 +226,7 @@ func doCallBackAction(callback func(), wg *sync.WaitGroup) {
 }
 
 func WriteLog(line string) {
-	f, err := os.OpenFile("./log4/err.txt", os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+	f, err := os.OpenFile("./logs/err.txt", os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
 	if err != nil {
 		panic(err)
 		return
